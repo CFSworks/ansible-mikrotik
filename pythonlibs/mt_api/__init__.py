@@ -44,7 +44,7 @@ class RosApiLengthUtils(object):
     def __init__(self, api):
         self.api = api
 
-    def write_lenght(self, length):
+    def write_length(self, length):
         self.api.write_bytes(self.length_to_bytes(length))
 
     def length_to_bytes(self, length):
@@ -182,7 +182,7 @@ class RosAPI(object):
     def write_word(self, word):
         assert type(word) is bytes
         logger.debug('>>> %s' % word)
-        self.length_utils.write_lenght(len(word))
+        self.length_utils.write_length(len(word))
         self.write_bytes(word)
 
     def read_word(self):
@@ -192,28 +192,28 @@ class RosAPI(object):
 
     def write_bytes(self, data):
         assert type(data) is bytes
-        sent_overal = 0
-        while sent_overal < len(data):
+        sent_overall = 0
+        while sent_overall < len(data):
             try:
-                sent = self.socket.send(data[sent_overal:])
+                sent = self.socket.send(data[sent_overall:])
             except socket.error as e:
                 raise RosAPIConnectionError(str(e))
             if sent == 0:
                 raise RosAPIConnectionError('Connection closed by remote end.')
-            sent_overal += sent
+            sent_overall += sent
 
     def read_bytes(self, length):
-        received_overal = b''
-        while len(received_overal) < length:
+        received_overall = b''
+        while len(received_overall) < length:
             try:
                 received = self.socket.recv(
-                    length - len(received_overal))
+                    length - len(received_overall))
             except socket.error as e:
                 raise RosAPIConnectionError(str(e))
             if len(received) == 0:
                 raise RosAPIConnectionError('Connection closed by remote end.')
-            received_overal += received
-        return received_overal
+            received_overall += received
+        return received_overall
 
 
 
