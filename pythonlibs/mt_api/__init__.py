@@ -125,6 +125,7 @@ class RosAPI(object):
         self.length_utils = RosApiLengthUtils(self)
 
     def login(self, username, pwd):
+        assert type(username) is type(pwd) is bytes
         for _, attrs in self.talk([b'/login']):
             token = binascii.unhexlify(attrs[b'ret'])
         hasher = hashlib.md5()
@@ -135,6 +136,7 @@ class RosAPI(object):
                    b'=response=00' + hasher.hexdigest().encode('ascii')])
 
     def talk(self, words):
+        assert all(type(word) is bytes for word in words)
         if self.write_sentence(words) == 0:
             return
         output = []
@@ -161,6 +163,7 @@ class RosAPI(object):
                 return output
 
     def write_sentence(self, words):
+        assert all(type(word) is bytes for word in words)
         words_written = 0
         for word in words:
             self.write_word(word)
@@ -177,6 +180,7 @@ class RosAPI(object):
             sentence.append(word)
 
     def write_word(self, word):
+        assert type(word) is bytes
         logger.debug('>>> %s' % word)
         self.length_utils.write_lenght(len(word))
         self.write_bytes(word)
@@ -187,6 +191,7 @@ class RosAPI(object):
         return word
 
     def write_bytes(self, data):
+        assert type(data) is bytes
         sent_overal = 0
         while sent_overal < len(data):
             try:
@@ -358,35 +363,36 @@ class Mikrotik(object):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((self.hostname, 8728))
     mt = RosAPI(s)
-    mt.login(self.username, self.password)
+    mt.login(self.username.encode('ascii'),
+             self.password.encode('ascii'))
     return mt
 
   def talk(self, talk_command):
     r = self.login()
-    response = r.talk(talk_command)
+    response = r.talk([word.encode('utf8') for word in talk_command])
     return(response)
 
   def api_print(self, base_path, params=None):
     command = [base_path + '/print']
     if params is not None:
-      for key, value in params.iteritems():
-        item = b'=' + key + '=' + str(value)
+      for key, value in params.items():
+        item = '=' + key + '=' + str(value)
         command.append(item)
 
     return self.talk(command)
 
   def api_add(self, base_path, params):
     command = [base_path + '/add']
-    for key, value in params.iteritems():
-      item = b'=' + key + '=' + str(value)
+    for key, value in params.items():
+      item = '=' + key + '=' + str(value)
       command.append(item)
 
     return self.talk(command)
 
   def api_edit(self, base_path, params):
     command = [base_path + '/set']
-    for key, value in params.iteritems():
-      item = b'=' + key + '=' + str(value)
+    for key, value in params.items():
+      item = '=' + key + '=' + str(value)
       command.append(item)
 
     return self.talk(command)
@@ -394,7 +400,7 @@ class Mikrotik(object):
   def api_remove(self, base_path, remove_id):
     command = [
         base_path + '/remove',
-        b'=.id=' + remove_id
+        '=.id=' + remove_id
     ]
 
     return self.talk(command)
@@ -402,8 +408,8 @@ class Mikrotik(object):
   def api_command(self, base_path, params=None):
     command = [base_path]
     if params is not None:
-      for key, value in params.iteritems():
-        item = b'=' + key + '=' + str(value)
+      for key, value in params.items():
+        item = '=' + key + '=' + str(value)
         command.append(item)
 
     return self.talk(command)
