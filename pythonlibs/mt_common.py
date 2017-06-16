@@ -3,6 +3,14 @@ import mt_api
 import re
 import sys
 
+from ansible.module_utils.basic import *
+
+mt_argument_spec = {
+  'host': dict(aliases=['hostname']),
+  'port': dict(type='int'),
+  'username': dict(fallback=(env_fallback, ['ANSIBLE_NET_USERNAME'])),
+  'password': dict(fallback=(env_fallback, ['ANSIBLE_NET_PASSWORD']), no_log=True),
+}
 
 def list_to_string(list):
   list_string = ""
