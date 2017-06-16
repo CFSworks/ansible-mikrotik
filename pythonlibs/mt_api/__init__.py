@@ -354,14 +354,14 @@ class RouterboardAPI(object):
 
 class Mikrotik(object):
 
-  def __init__(self, hostname, username, password):
-    self.hostname = hostname
+  def __init__(self, host, username, password, port=8728):
+    self.host = host
     self.username = username
     self.password = password
+    self.port = port
 
   def login(self):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((self.hostname, 8728))
+    s = socket.create_connection((self.host, self.port))
     mt = RosAPI(s)
     mt.login(self.username.encode('ascii'),
              self.password.encode('ascii'))
