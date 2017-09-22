@@ -50,70 +50,68 @@ EXAMPLES = '''
       use-radius: yes
 '''
 
-from mt_common import clean_params, MikrotikIdempotent
 from ansible.module_utils.basic import AnsibleModule
+from mt_common import MikrotikIdempotent
 
 
 
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
-            hostname  = dict(required=True),
-            username  = dict(required=True),
-            password  = dict(required=True),
-            settings  = dict(required=False, type='dict'),
-            parameter = dict(
-                required  = True,
-                choices   = ['hotspot', 'profile', 'walled-garden'],
-                type      = 'str'
+        argument_spec=dict(
+            hostname=dict(required=True),
+            username=dict(required=True),
+            password=dict(required=True),
+            settings=dict(required=False, type='dict'),
+            parameter=dict(
+                required=True,
+                choices=['hotspot', 'profile', 'walled-garden'],
+                type='str'
             ),
-            state   = dict(
-                required  = False,
-                choices   = ['present', 'absent'],
-                type      = 'str'
+            state=dict(
+                required=False,
+                choices=['present', 'absent'],
+                type='str'
             ),
         ),
-    supports_check_mode=True
+        supports_check_mode=True
     )
 
-    idempotent_parameter = None
     params = module.params
     idempotent_parameter = 'name'
 
     if params['parameter'] == 'profile':
-      params['parameter'] = "hotspot/profile"
+        params['parameter'] = "hotspot/profile"
 
     if params['parameter'] == 'walled-garden':
-      idempotent_parameter = 'comment'
-      params['parameter'] = "hotspot/walled-garden"
+        idempotent_parameter = 'comment'
+        params['parameter'] = "hotspot/walled-garden"
 
     mt_obj = MikrotikIdempotent(
-        hostname         = params['hostname'],
-        username         = params['username'],
-        password         = params['password'],
-        state            = params['state'],
-        desired_params   = params['settings'],
-        idempotent_param = idempotent_parameter,
-        api_path         = '/ip/' + str(params['parameter']),
-        check_mode       = module.check_mode,
-
+        hostname=params['hostname'],
+        username=params['username'],
+        password=params['password'],
+        state=params['state'],
+        desired_params=params['settings'],
+        idempotent_param=idempotent_parameter,
+        api_path='/ip/' + str(params['parameter']),
+        check_mode=module.check_mode,
     )
 
     mt_obj.sync_state()
 
     if mt_obj.failed:
         module.fail_json(
-          msg = mt_obj.failed_msg
+            msg=mt_obj.failed_msg
         )
     elif mt_obj.changed:
         module.exit_json(
             failed=False,
             changed=True,
             msg=mt_obj.changed_msg,
-            diff={ "prepared": {
+            diff=dict(prepared={
                 "old": mt_obj.old_params,
                 "new": mt_obj.new_params,
-            }},
+            }),
         )
     else:
         module.exit_json(
@@ -124,4 +122,4 @@ def main():
         )
 
 if __name__ == '__main__':
-  main()
+    main()
